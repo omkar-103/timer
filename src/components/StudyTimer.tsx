@@ -32,6 +32,19 @@ export default function StudyTimer() {
     const isIdle = state.mode === "idle";
     const isActive = isStudy || isBreak;
 
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.code === "Space" && !showGoalSetter) {
+                e.preventDefault();
+                if (state.mode === "idle") startStudy();
+                else if (state.mode === "study") pauseStudy();
+                else if (state.mode === "break") resumeStudy();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [state.mode, startStudy, pauseStudy, resumeStudy, showGoalSetter]);
+
     if (!hydrated) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
@@ -100,8 +113,8 @@ export default function StudyTimer() {
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             className={`text-[10px] uppercase tracking-widest font-medium px-3 py-1 rounded-full ${isStudy
-                                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-                                    : "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300"
+                                ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                : "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300"
                                 }`}
                         >
                             {isStudy ? "● Focus" : "◎ Break"}
