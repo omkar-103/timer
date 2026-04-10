@@ -197,3 +197,112 @@
   background-size: 200% 100%;
   animation: progress-shimmer 2.5s linear infinite;
 }
+
+/* ---- Inline Goal Slider ---- */
+.goal-slider {
+  --accent: var(--slider-accent, #f59e0b);
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 99px;
+  background: oklch(0.88 0.015 70);
+  outline: none;
+  position: relative;
+  z-index: 1;
+}
+
+.dark .goal-slider {
+  background: oklch(1 0 0 / 12%);
+}
+
+/* Webkit thumb */
+.goal-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 0 18px 2px color-mix(in srgb, var(--accent) 45%, transparent);
+  cursor: grab;
+  transition: width 0.18s cubic-bezier(.34,1.56,.64,1),
+              height 0.18s cubic-bezier(.34,1.56,.64,1),
+              box-shadow 0.2s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.goal-slider::-webkit-slider-thumb:hover {
+  width: 24px;
+  height: 24px;
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 0 28px 6px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.goal-slider:active::-webkit-slider-thumb {
+  cursor: grabbing;
+  width: 26px;
+  height: 26px;
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--accent) 28%, transparent),
+    0 0 36px 8px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* Firefox thumb */
+.goal-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 0 18px 2px color-mix(in srgb, var(--accent) 45%, transparent);
+  cursor: grab;
+  transition: width 0.18s cubic-bezier(.34,1.56,.64,1),
+              height 0.18s cubic-bezier(.34,1.56,.64,1),
+              box-shadow 0.2s ease;
+}
+
+.goal-slider::-moz-range-thumb:hover {
+  width: 24px;
+  height: 24px;
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 0 28px 6px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.goal-slider:active::-moz-range-thumb {
+  cursor: grabbing;
+  width: 26px;
+  height: 26px;
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--accent) 28%, transparent),
+    0 0 36px 8px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* Webkit track */
+.goal-slider::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 99px;
+}
+
+/* Firefox track */
+.goal-slider::-moz-range-track {
+  height: 3px;
+  border-radius: 99px;
+  background: oklch(0.88 0.015 70);
+}
+
+.dark .goal-slider::-moz-range-track {
+  background: oklch(1 0 0 / 12%);
+}
+
+/* ---- Circle preset button pulse ---- */
+@keyframes goal-circle-pulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.05); }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStudyTimer, formatTime } from "@/hooks/useStudyTimer";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -8,8 +8,10 @@ import { ProgressBar } from "@/components/ProgressBar";
 import { TimerDisplay } from "@/components/TimerDisplay";
 import { ControlButtons } from "@/components/ControlButtons";
 import { SessionSummary } from "@/components/SessionSummary";
-import { GoalSetter } from "@/components/GoalSetter";
+import { InlineGoalSetter } from "@/components/InlineGoalSetter";
 import { WarmGlow, CoolGlow } from "@/components/GlowEffects";
+import { StatsModal } from "@/components/StatsModal";
+import { IdleHorizontalTimeline, ActiveExamLayout, CurrentSubjectFocus, CompactCountdown } from "@/components/ExamCountdown";
 
 export default function StudyTimer() {
     const {
@@ -25,7 +27,7 @@ export default function StudyTimer() {
         setGoal,
     } = useStudyTimer();
 
-    const [showGoalSetter, setShowGoalSetter] = useState(false);
+    const [showStats, setShowStats] = useState(false);
     const isStudy = state.mode === "study";
     const isBreak = state.mode === "break";
     const isEnded = state.mode === "ended";
@@ -34,7 +36,7 @@ export default function StudyTimer() {
 
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.code === "Space" && !showGoalSetter) {
+            if (e.code === "Space") {
                 e.preventDefault();
                 if (state.mode === "idle") startStudy();
                 else if (state.mode === "study") pauseStudy();
@@ -43,7 +45,7 @@ export default function StudyTimer() {
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [state.mode, startStudy, pauseStudy, resumeStudy, showGoalSetter]);
+    }, [state.mode, startStudy, pauseStudy, resumeStudy]);
 
     if (!hydrated) {
         return (
@@ -120,6 +122,20 @@ export default function StudyTimer() {
                             {isStudy ? "● Focus" : "◎ Break"}
                         </motion.span>
                     )}
+                    <CompactCountdown />
+                    {/* View Stats button */}
+                    <motion.button
+                        id="btn-view-stats"
+                        onClick={() => setShowStats(true)}
+                        whileHover={{ scale: 1.08 }}
+                        whileTap={{ scale: 0.93 }}
+                        aria-label="View analytics"
+                        title="View Stats"
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-amber-400 hover:bg-amber-400/10 dark:hover:bg-amber-400/10 transition-all duration-200 cursor-pointer text-sm relative group"
+                    >
+                        <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ boxShadow: "0 0 12px rgba(251,191,36,0.35)" }} />
+                        <span>📊</span>
+                    </motion.button>
                     <ThemeToggle />
                 </motion.div>
             </header>
@@ -135,7 +151,7 @@ export default function StudyTimer() {
                     percent={progressPercent}
                     isStudy={isStudy}
                     goalMinutes={Math.floor(state.totalStudyGoalSeconds / 60)}
-                    onGoalClick={() => !isActive && setShowGoalSetter(true)}
+                    onGoalClick={() => {}}
                 />
             </motion.div>
 
@@ -177,7 +193,7 @@ export default function StudyTimer() {
                                 isBreak={isBreak}
                             />
 
-                            {/* Stats Row */}
+                            {/* Stats Row — only while active */}
                             {isActive && (
                                 <motion.div
                                     initial={{ opacity: 0 }}
@@ -202,6 +218,57 @@ export default function StudyTimer() {
                                 </motion.div>
                             )}
 
+                            {/* Exam Info / Smart Nudge during active timer */}
+                            <AnimatePresence>
+                                {isActive && (
+                                    <motion.div
+                                        key="smart-nudge"
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="w-full overflow-hidden"
+                                    >
+                                        <CurrentSubjectFocus />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            {/* Exam Timeline — only when idle */}
+                            <AnimatePresence>
+                                {isIdle && (
+                                    <motion.div
+                                        key="exam-timeline"
+                                        initial={{ opacity: 0, y: 4 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -4 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="w-full pt-4 pb-2"
+                                    >
+                                        <IdleHorizontalTimeline />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            {/* Inline Goal Setter — only when idle */}
+                            <AnimatePresence>
+                                {isIdle && (
+                                    <motion.div
+                                        key="inline-goal"
+                                        initial={{ opacity: 0, y: 6 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -4 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="w-full"
+                                    >
+                                        <InlineGoalSetter
+                                            goalMinutes={Math.floor(state.totalStudyGoalSeconds / 60)}
+                                            onGoalChange={setGoal}
+                                            isBreak={false}
+                                        />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
                             {/* Controls */}
                             <ControlButtons
                                 mode={state.mode}
@@ -220,13 +287,6 @@ export default function StudyTimer() {
                                     className="text-xs text-muted-foreground text-center max-w-xs leading-relaxed"
                                 >
                                     Start a focused session. Your progress is saved automatically.
-                                    <br />
-                                    <button
-                                        onClick={() => setShowGoalSetter(true)}
-                                        className="underline underline-offset-2 mt-1 hover:text-foreground transition-colors"
-                                    >
-                                        Set goal ({Math.floor(state.totalStudyGoalSeconds / 60)} min)
-                                    </button>
                                 </motion.p>
                             )}
                         </motion.div>
@@ -234,14 +294,26 @@ export default function StudyTimer() {
                 </AnimatePresence>
             </div>
 
-            {/* Goal Setter Modal */}
+            {/* Active Exam Layout (Left/Right desktop, scroll row mobile) */}
             <AnimatePresence>
-                {showGoalSetter && (
-                    <GoalSetter
-                        currentGoal={Math.floor(state.totalStudyGoalSeconds / 60)}
-                        onSave={(min) => { setGoal(min); setShowGoalSetter(false); }}
-                        onClose={() => setShowGoalSetter(false)}
-                    />
+                {isActive && (
+                    <motion.div
+                        key="active-exam-layout"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="absolute inset-0 pointer-events-none z-0"
+                    >
+                        <ActiveExamLayout />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Stats Modal */}
+            <AnimatePresence>
+                {showStats && (
+                    <StatsModal onClose={() => setShowStats(false)} />
                 )}
             </AnimatePresence>
 

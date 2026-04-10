@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { saveSession } from "@/lib/analyticsStore";
 
 export type TimerMode = "idle" | "study" | "break" | "ended";
 
@@ -152,7 +153,11 @@ export function useStudyTimer() {
 
     const endSession = useCallback(() => {
         stopTick();
-        setState((prev) => ({ ...prev, mode: "ended", pausedAt: Date.now() }));
+        setState((prev) => {
+            // Persist to analytics store
+            saveSession(prev.studySeconds, prev.breakSeconds);
+            return { ...prev, mode: "ended", pausedAt: Date.now() };
+        });
     }, [stopTick]);
 
     const resetSession = useCallback(() => {
